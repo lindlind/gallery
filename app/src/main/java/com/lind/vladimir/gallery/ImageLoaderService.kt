@@ -1,23 +1,13 @@
 package com.lind.vladimir.gallery
 
-import android.app.ActionBar
-import android.app.Activity
 import android.app.IntentService
-import android.content.ComponentName
-import android.content.Intent
 import android.content.Context
-import android.content.ServiceConnection
-import java.io.Serializable
+import android.content.Intent
 import android.graphics.BitmapFactory
-import android.graphics.Bitmap
-import android.os.Binder
-import android.os.IBinder
 import android.util.Log
-import kotlinx.android.synthetic.main.main_activity.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import com.lind.vladimir.gallery.Utils.Companion.isOnline
 import java.io.File
+import java.io.Serializable
 import java.net.URL
 
 
@@ -34,23 +24,37 @@ class ImageLoaderService : IntentService("ImageLoaderService") {
     }
 
     private fun handler(list: List<Image>) {
-        for (image in list) {
-            val file = File("/data/user/0/com.lind.vladimir.gallery/app_Covers/" + image.id + ".jpg")
+        for ((i, image) in list.withIndex()) {
+            val file =
+                File(INTERNAL_COVER_STORAGE + image.id + ".jpg")
 
             if (!file.exists()) {
                 val url = URL(image.urls?.small)
                 val btm = BitmapFactory.decodeStream(url.openConnection().getInputStream())
-                Utils.saveToInternalStorage(this, "Covers", image.id + ".jpg", btm)
+                if(btm == null)
+                {
+                    if(!isOnline())
+                    {
+                        val intent = Intent()
+                        intent.action = NO_INTERNET_BROADCAST_RECEIVER_TAG
+                        sendBroadcast(intent)
+                    }
+                }
+                else
+                    Utils.saveToInternalStorage(this, "Covers", image.id + ".jpg", btm)
             }
 
-            image.urls?.localCoverPath = "/data/user/0/com.lind.vladimir.gallery/app_Covers/" + image.id + ".jpg"
+            image.urls?.localCoverPath = INTERNAL_COVER_STORAGE +
+                    image.id + ".jpg"
 
             val intent = Intent()
             intent.action = RECYCLER_BROADCAST_RECEIVER_TAG
             intent.putExtra("image", image)
+            intent.putExtra("pos", i)
+
             sendBroadcast(intent)
 
-            Log.i("loding",file.absolutePath)
+            Log.i("loading", file.absolutePath)
         }
     }
 
@@ -62,11 +66,11 @@ class ImageLoaderService : IntentService("ImageLoaderService") {
 
         @JvmStatic
         fun startLoading(context: Context, list: List<Image>) {
-                val intent = Intent(context, ImageLoaderService::class.java).apply {
-                    action = "LoadImages"
-                    putExtra("imagesList", list as Serializable)
-                }
-                context.startService(intent)
+            val intent = Intent(context, ImageLoaderService::class.java).apply {
+                action = "LoadImages"
+                putExtra("imagesList", list as Serializable)
+            }
+            context.startService(intent)
         }
     }
 }
