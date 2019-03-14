@@ -3,10 +3,25 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent" android:layout_height="match_parent">
 
-    <com.lind.vladimir.gallery.SquareImageView
+    <com.lind.vladimir.gallery.Widgets.SquareImageView
         android:id="@+id/image"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
-        android:src="@mipmap/ic_launcher_round" />
+        android:clipToPadding="false"
+        />
+
+    <ImageButton
+        android:id="@+id/likeBtn"
+        android:scaleType="fitCenter"
+        android:adjustViewBounds="true"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_gravity="start|bottom"
+        android:layout_marginLeft="10dp"
+        android:layout_marginBottom="10dp"
+        android:background="@android:color/transparent"
+        android:src="@drawable/like_outline"
+        android:clickable="true"
+        android:tint="@android:color/darker_gray" />
 </FrameLayout>
